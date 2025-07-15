@@ -57,17 +57,26 @@
         alert("Please fill all fields and select at least one perfume.");
         return;
       }
-      fetch("https://script.google.com/macros/s/AKfycbzgb0o8M9-Rv2PrlwiMmgp0cbHP_q-DNOMQixqwQmwYiw08vs3hZqIeWxacv3vbgPujAQ/exec", {
+
+      fetch("https://perfume-proxy.vercel.app/submit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          action: "submit",
           name,
           phone,
           perfumes: selections
         })
-      }).then(() => {
-        window.location.href = "https://app.yourdomain.com/thank-you.html";
+      })
+      .then(response => {
+        if (!response.ok) throw new Error("Submission failed");
+        return response.json();
+      })
+      .then(() => {
+        window.location.href = "https://app.bazilstore.com/thank-you.html";
+      })
+      .catch(err => {
+        alert("Something went wrong. Please try again.");
+        console.error(err);
       });
     }
 
