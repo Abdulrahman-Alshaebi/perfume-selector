@@ -31,16 +31,22 @@
     }
 
     function showResults(query) {
-      const filtered = perfumes.filter(p => p.name.toLowerCase().includes(query.toLowerCase()));
-      const container = document.getElementById("results");
-      container.innerHTML = "";
-      filtered.forEach((p, index) => {
-        const div = document.createElement("div");
-        div.className = "perfume-card";
-        div.innerHTML = `<img src="${p.image}" alt=""><label><input type='checkbox' onchange='toggleSelect(${index})'> ${p.name}</label>`;
-        container.appendChild(div);
-      });
-    }
+  const container = document.getElementById("results");
+  container.innerHTML = "";
+
+  // If query is empty, don't show any results
+  if (!query.trim()) return;
+
+  const filtered = perfumes.filter(p => p.name.toLowerCase().includes(query.toLowerCase()));
+
+  filtered.forEach((p, index) => {
+    const div = document.createElement("div");
+    div.className = "perfume-card";
+    div.innerHTML = `<img src="${p.image}" alt=""><label><input type='checkbox' onchange='toggleSelect(${index})'> ${p.name}</label>`;
+    container.appendChild(div);
+  });
+}
+
 
     function toggleSelect(index) {
       const name = perfumes[index].name;
