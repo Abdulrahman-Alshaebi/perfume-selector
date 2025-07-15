@@ -20,6 +20,8 @@
   <input type="text" id="name" placeholder="Your Name">
   <input type="tel" id="phone" placeholder="Phone Number">
   <button onclick="submitSelection()">Submit</button>
+  <h3>Selected Perfumes</h3>
+  <div id="selectedBox"></div>
 
   <script>
     let perfumes = [];
@@ -53,7 +55,8 @@
   filtered.forEach((p, index) => {
     const div = document.createElement("div");
     div.className = "perfume-card";
-    div.innerHTML = `<img src="${p.image}" alt=""><label><input type='checkbox' onchange='toggleSelect(${index})'> ${p.name}</label>`;
+    div.innerHTML = `<img src="${p.image}" alt=""><label><input type='checkbox' ${selected.has(p.name) ? "checked" : ""} onchange='toggleSelect(${index})'>
+ ${p.name}</label>`;
     container.appendChild(div);
   });
 }
@@ -61,10 +64,13 @@
 
 
     function toggleSelect(index) {
-      const name = perfumes[index].name;
-      if (selected.has(name)) selected.delete(name);
-      else selected.add(name);
-    }
+  const name = perfumes[index].name;
+  if (selected.has(name)) selected.delete(name);
+  else selected.add(name);
+
+  renderSelectedBox(); // 👈 update box
+}
+
 
     function submitSelection() {
       const name = document.getElementById("name").value;
@@ -96,6 +102,25 @@
         console.error(err);
       });
     }
+
+    function renderSelectedBox() {
+  const box = document.getElementById("selectedBox");
+  box.innerHTML = "";
+
+  if (selected.size === 0) {
+    box.innerHTML = "<p style='color:gray;'>No perfumes selected yet.</p>";
+    return;
+  }
+
+  perfumes.forEach(p => {
+    if (selected.has(p.name)) {
+      const div = document.createElement("div");
+      div.className = "perfume-card";
+      div.innerHTML = `<img src="${p.image}" alt=""><span>${p.name}</span>`;
+      box.appendChild(div);
+    }
+  });
+}
 
     document.getElementById("search").addEventListener("input", e => showResults(e.target.value));
 
