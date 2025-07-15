@@ -34,10 +34,21 @@
   const container = document.getElementById("results");
   container.innerHTML = "";
 
-  // If query is empty, don't show any results
   if (!query.trim()) return;
 
-  const filtered = perfumes.filter(p => p.name.toLowerCase().includes(query.toLowerCase()));
+  const q = query.trim().toLowerCase();
+
+  const filtered = perfumes.filter(p =>
+    p.name
+      .toLowerCase()
+      .split(/\s+/) // split on any whitespace (space, tab, etc.)
+      .some(word => word.startsWith(q)) // any word starts with the query
+  );
+
+  if (filtered.length === 0) {
+    container.innerHTML = "<p>No perfumes found.</p>";
+    return;
+  }
 
   filtered.forEach((p, index) => {
     const div = document.createElement("div");
@@ -46,6 +57,7 @@
     container.appendChild(div);
   });
 }
+
 
 
     function toggleSelect(index) {
