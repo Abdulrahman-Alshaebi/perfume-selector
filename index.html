@@ -28,7 +28,6 @@
     async function fetchPerfumes() {
       const res = await fetch("https://script.google.com/macros/s/AKfycbzgb0o8M9-Rv2PrlwiMmgp0cbHP_q-DNOMQixqwQmwYiw08vs3hZqIeWxacv3vbgPujAQ/exec?action=get");
       perfumes = await res.json();
-      showResults("");
     }
 
     function showResults(query) {
