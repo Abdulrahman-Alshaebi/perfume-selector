@@ -9,7 +9,7 @@
                     box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
     .perfume-card img { width: 50px; height: 50px; object-fit: cover;
                         border-radius: 4px; margin-right: 12px; }
-    #results { margin-top: 20px; }
+    #scroll-container { max-height: 360px; overflow-y: auto; margin-top: 20px; border-radius: 6px; }
     #selectedBox { margin-top: 10px; }
     input[type="text"], input[type="tel"] { width: 100%; padding: 10px;
                                             margin: 10px 0; }
@@ -22,7 +22,7 @@
   <h2>Select Your Favorite Perfumes</h2>
 
   <input type="text" id="search" placeholder="Search perfumes...">
-  <div style="max-height: 360px; overflow-y: auto; margin-top: 20px; border-radius: 6px;" id="scroll-container">
+  <div id="scroll-container">
     <div id="results"></div>
   </div>
 
@@ -40,7 +40,6 @@
     let perfumes = [];
     let selected = new Set();
 
-    /* ---- Load master perfume list (once) ---- */
     async function fetchPerfumes() {
       const res = await fetch(
         "https://script.google.com/macros/s/AKfycbzgb0o8M9-Rv2PrlwiMmgp0cbHP_q-DNOMQixqwQmwYiw08vs3hZqIeWxacv3vbgPujAQ/exec?action=get"
@@ -48,15 +47,13 @@
       perfumes = await res.json();
     }
 
-    /* ---- Show results only when user types ---- */
     function showResults(query) {
       const container = document.getElementById("results");
       container.innerHTML = "";
 
       const q = query.trim().toLowerCase();
-      if (!q) return; // empty search = show nothing
+      if (!q) return;
 
-      // match if any word starts with query
       const filtered = perfumes.filter(p =>
         p.name
           .toLowerCase()
@@ -85,16 +82,13 @@
       });
     }
 
-    /* ---- Toggle selection by unique perfume name ---- */
     function toggleSelectByName(name) {
       if (selected.has(name)) selected.delete(name);
       else selected.add(name);
       renderSelectedBox();
-      // Refresh visible list (keeps checkboxes in sync)
       showResults(document.getElementById("search").value);
     }
 
-    /* ---- Render “basket” of selected perfumes ---- */
     function renderSelectedBox() {
       const box = document.getElementById("selectedBox");
       box.innerHTML = "";
@@ -104,7 +98,6 @@
         return;
       }
 
-      // preserve order of selection
       selected.forEach(name => {
         const p = perfumes.find(pp => pp.name === name);
         if (!p) return;
@@ -115,14 +108,20 @@
       });
     }
 
-    /* ---- Submit via Node/Vercel proxy ---- */
     function submitSelection() {
       const name = document.getElementById("name").value.trim();
-      const phone = document.getElementById("phone").value.trim();
+      let phone = document.getElementById("phone").value.trim().replace(/^\+/, "");
       const selections = Array.from(selected);
 
       if (!name || !phone || selections.length === 0) {
         alert("Please fill all fields and select at least one perfume.");
+        return;
+      }
+
+      // ✅ Validate Saudi phone number format
+      const phonePattern = /^(05\d{8}|9665\d{8})$/;
+      if (!phonePattern.test(phone)) {
+        alert("Please enter a valid Saudi phone number (e.g. 05xxxxxxxx or 9665xxxxxxxx).");
         return;
       }
 
@@ -142,11 +141,9 @@
       });
     }
 
-    /* ---- Event listeners ---- */
     document.getElementById("search")
             .addEventListener("input", e => showResults(e.target.value));
 
-    /* ---- Initial data load ---- */
     fetchPerfumes();
   </script>
 </body>
