@@ -3,90 +3,122 @@
 <head>
   <title>Perfume Selector</title>
   <style>
-    body { font-family: Arial; padding: 20px; background: #f9f9f9; }
-    .perfume-card { display: flex; align-items: center; margin-bottom: 12px; background: white; padding: 10px; border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-    .perfume-card img { width: 50px; height: 50px; object-fit: cover; border-radius: 4px; margin-right: 12px; }
+    body { font-family: Arial, sans-serif; padding: 20px; background: #f9f9f9; }
+    .perfume-card { display: flex; align-items: center; margin-bottom: 12px;
+                    background: #fff; padding: 10px; border-radius: 6px;
+                    box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    .perfume-card img { width: 50px; height: 50px; object-fit: cover;
+                        border-radius: 4px; margin-right: 12px; }
     #results { margin-top: 20px; }
-    input[type="text"], input[type="tel"] { width: 100%; padding: 10px; margin: 10px 0; }
-    button { padding: 10px 20px; background: #4CAF50; color: white; border: none; cursor: pointer; border-radius: 4px; }
+    #selectedBox { margin-top: 10px; }
+    input[type="text"], input[type="tel"] { width: 100%; padding: 10px;
+                                            margin: 10px 0; }
+    button { padding: 10px 20px; background: #4CAF50; color: #fff; border: none;
+             cursor: pointer; border-radius: 4px; }
     button:hover { background: #45a049; }
   </style>
 </head>
 <body>
   <h2>Select Your Favorite Perfumes</h2>
+
   <input type="text" id="search" placeholder="Search perfumes...">
   <div id="results"></div>
+
   <h3>Your Info</h3>
   <input type="text" id="name" placeholder="Your Name">
   <input type="tel" id="phone" placeholder="Phone Number">
   <button onclick="submitSelection()">Submit</button>
+
   <h3>Selected Perfumes</h3>
-  <div id="selectedBox"></div>
+  <div id="selectedBox">
+    <p style="color:gray;">No perfumes selected yet.</p>
+  </div>
 
   <script>
     let perfumes = [];
     let selected = new Set();
 
+    /* ---- Load master perfume list (once) ---- */
     async function fetchPerfumes() {
-      const res = await fetch("https://script.google.com/macros/s/AKfycbzgb0o8M9-Rv2PrlwiMmgp0cbHP_q-DNOMQixqwQmwYiw08vs3hZqIeWxacv3vbgPujAQ/exec?action=get");
+      const res = await fetch(
+        "https://script.google.com/macros/s/AKfycbzgb0o8M9-Rv2PrlwiMmgp0cbHP_q-DNOMQixqwQmwYiw08vs3hZqIeWxacv3vbgPujAQ/exec?action=get"
+      );
       perfumes = await res.json();
     }
 
+    /* ---- Show results only when user types ---- */
     function showResults(query) {
-  const container = document.getElementById("results");
-  container.innerHTML = "";
+      const container = document.getElementById("results");
+      container.innerHTML = "";
 
-  if (!query.trim()) return;
+      const q = query.trim().toLowerCase();
+      if (!q) return; // empty search = show nothing
 
-  const q = query.trim().toLowerCase();
+      // match if any word starts with query
+      const filtered = perfumes.filter(p =>
+        p.name
+          .toLowerCase()
+          .split(/\s+/)
+          .some(word => word.startsWith(q))
+      );
 
-  const filtered = perfumes.filter(p =>
-    p.name
-      .toLowerCase()
-      .split(/\s+/) // split on any whitespace (space, tab, etc.)
-      .some(word => word.startsWith(q)) // any word starts with the query
-  );
+      if (!filtered.length) {
+        container.innerHTML = "<p>No perfumes found.</p>";
+        return;
+      }
 
-  if (filtered.length === 0) {
-    container.innerHTML = "<p>No perfumes found.</p>";
-    return;
-  }
+      filtered.forEach(p => {
+        const escapedName = p.name.replace(/"/g, '&quot;');
+        const div = document.createElement("div");
+        div.className = "perfume-card";
+        div.innerHTML = `
+          <img src="${p.image}" alt="">
+          <label>
+            <input type="checkbox"
+                   ${selected.has(p.name) ? "checked" : ""}
+                   onchange="toggleSelectByName(&quot;${escapedName}&quot;)">
+            ${p.name}
+          </label>`;
+        container.appendChild(div);
+      });
+    }
 
-  filtered.forEach(p => {
-  const div = document.createElement("div");
-  div.className = "perfume-card";
-  div.innerHTML = `
-    <img src="${p.image}" alt="">
-    <label>
-      <input type='checkbox' ${selected.has(p.name) ? "checked" : ""} onchange='toggleSelectByName("${p.name.replace(/"/g, '&quot;')}")'>
-      ${p.name}
-    </label>`;
-  container.appendChild(div);
-});
+    /* ---- Toggle selection by unique perfume name ---- */
+    function toggleSelectByName(name) {
+      if (selected.has(name)) selected.delete(name);
+      else selected.add(name);
+      renderSelectedBox();
+      // Refresh visible list (keeps checkboxes in sync)
+      showResults(document.getElementById("search").value);
+    }
 
+    /* ---- Render “basket” of selected perfumes ---- */
+    function renderSelectedBox() {
+      const box = document.getElementById("selectedBox");
+      box.innerHTML = "";
 
-      function toggleSelectByName(name) {
-  if (selected.has(name)) selected.delete(name);
-  else selected.add(name);
-  renderSelectedBox();
-}
+      if (selected.size === 0) {
+        box.innerHTML = "<p style='color:gray;'>No perfumes selected yet.</p>";
+        return;
+      }
 
+      // preserve order of selection
+      selected.forEach(name => {
+        const p = perfumes.find(pp => pp.name === name);
+        if (!p) return;
+        const div = document.createElement("div");
+        div.className = "perfume-card";
+        div.innerHTML = `<img src="${p.image}" alt=""><span>${p.name}</span>`;
+        box.appendChild(div);
+      });
+    }
 
-
-
-    function toggleSelect(index) {
-  const name = perfumes[index].name;
-  if (selected.has(name)) selected.delete(name);
-  else selected.add(name);
-
-  renderSelectedBox(); // 👈 update box
-}
-
-
+    /* ---- Submit via Node/Vercel proxy ---- */
     function submitSelection() {
-      const name = document.getElementById("name").value;
-      const phone = document.getElementById("phone").value;
+      const name = document.getElementById("name").value.trim();
+      const phone = document.getElementById("phone").value.trim();
       const selections = Array.from(selected);
+
       if (!name || !phone || selections.length === 0) {
         alert("Please fill all fields and select at least one perfume.");
         return;
@@ -95,46 +127,24 @@
       fetch("https://perfume-proxy.vercel.app/submit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name,
-          phone,
-          perfumes: selections
-        })
+        body: JSON.stringify({ name, phone, perfumes: selections })
       })
-      .then(response => {
-        if (!response.ok) throw new Error("Submission failed");
-        return response.json();
+      .then(r => {
+        if (!r.ok) throw new Error("Submission failed");
+        return r.json();
       })
-      .then(() => {
-        window.location.href = "https://app.bazilstore.com/thank-you.html";
-      })
+      .then(() => window.location.href = "https://app.bazilstore.com/thank-you.html")
       .catch(err => {
         alert("Something went wrong. Please try again.");
         console.error(err);
       });
     }
 
-    function renderSelectedBox() {
-  const box = document.getElementById("selectedBox");
-  box.innerHTML = "";
+    /* ---- Event listeners ---- */
+    document.getElementById("search")
+            .addEventListener("input", e => showResults(e.target.value));
 
-  if (selected.size === 0) {
-    box.innerHTML = "<p style='color:gray;'>No perfumes selected yet.</p>";
-    return;
-  }
-
-  perfumes.forEach(p => {
-    if (selected.has(p.name)) {
-      const div = document.createElement("div");
-      div.className = "perfume-card";
-      div.innerHTML = `<img src="${p.image}" alt=""><span>${p.name}</span>`;
-      box.appendChild(div);
-    }
-  });
-}
-
-    document.getElementById("search").addEventListener("input", e => showResults(e.target.value));
-
+    /* ---- Initial data load ---- */
     fetchPerfumes();
   </script>
 </body>
