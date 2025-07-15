@@ -16,26 +16,15 @@
     button { padding: 10px 20px; background: #4CAF50; color: #fff; border: none;
              cursor: pointer; border-radius: 4px; }
     button:hover { background: #45a049; }
-    .scroll-box {
-  max-height: 350px;  /* roughly 4–5 items */
-  overflow-y: auto;
-  padding-right: 6px; /* for scrollbar room */
-}
-.scroll-box::-webkit-scrollbar {
-  width: 6px;
-}
-.scroll-box::-webkit-scrollbar-thumb {
-  background-color: #ccc;
-  border-radius: 4px;
-}
-
   </style>
 </head>
 <body>
   <h2>Select Your Favorite Perfumes</h2>
 
   <input type="text" id="search" placeholder="Search perfumes...">
-  <div id="results" class="scroll-box"></div>
+  <div style="max-height: 360px; overflow-y: auto; margin-top: 20px; border-radius: 6px;" id="scroll-container">
+    <div id="results"></div>
+  </div>
 
   <h3>Your Info</h3>
   <input type="text" id="name" placeholder="Your Name">
